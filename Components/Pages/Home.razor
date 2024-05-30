@@ -1,7 +1,94 @@
 ﻿@page "/"
+@using Microsoft.Extensions.Configuration;
+@using Azure.AI.OpenAI;
+@inject IConfiguration Configuration
+@using System.Threading.Tasks
+@rendermode InteractiveServer
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
 
-Welcome to your new app.
+@* // display messages *@
+<div class="chat-container">
+    <div id="scrollbox">
+        @foreach (var msg in messages)
+        {
+            <div class="message @(msg.IsSentByUser ? "sent" : "received")">
+                <div class="username">@msg.Username</div>
+                <div class="msg">@msg.Content</div>
+            </div>
+        }
+    </div>
+    
+    <div class="area-send-message">
+        <textarea class="input-lg" @bind="inputtext" placeholder="Type your message here..."></textarea>
+        <div class="button-send-message">
+            <button class="btn-default" @onclick="SendMessage">送信</button>
+        </div>
+    </div>
+    
+</div>
+
+@code
+{
+    private string? nonAzureOpenAIApiKey;
+    private string inputtext { get; set; } = "";
+    private List<ChatMessage> messages = new List<ChatMessage>();
+
+    protected override void OnInitialized()
+    {
+        nonAzureOpenAIApiKey = Configuration["OAI_KEY"];
+        
+        messages.Add(new ChatMessage { Username = "BlazorGenAI", Content = "Hello world", IsSentByUser = false });
+                    
+    }
+
+    private async Task SendMessage()
+    {
+        if (!string.IsNullOrWhiteSpace(inputtext))
+        {
+            // Add user message to chat
+            messages.Add(new ChatMessage { Username = "You", Content = inputtext, IsSentByUser = true });
+            // Clear the input text after adding the message
+            var userMessage = inputtext;
+            inputtext = string.Empty;
+            await InvokeAsync(StateHasChanged);
+
+            try
+            {
+                var client = new OpenAIClient(nonAzureOpenAIApiKey, new OpenAIClientOptions());
+                var chatCompletionsOptions = new ChatCompletionsOptions()
+                {
+                    DeploymentName = "gpt-3.5-turbo", // Use DeploymentName for "model" with non-Azure clients
+                    Messages =
+                    {
+                        new ChatRequestSystemMessage("You are a helpful assistant. You will talk like a pirate."),
+                        new ChatRequestUserMessage(userMessage),
+                    }
+                };
+
+                var response = await client.GetChatCompletionsAsync(chatCompletionsOptions);
+                ChatResponseMessage responseMessage = response.Value.Choices[0].Message;
+                Console.WriteLine($"[{responseMessage.Role.ToString().ToUpperInvariant()}]: {responseMessage.Content}");
+
+                messages.Add(new ChatMessage { Username = "BlazorGenAI", Content = responseMessage.Content, IsSentByUser = false });
+                await InvokeAsync(StateHasChanged);
+                
+            }
+            catch (Exception ex)
+            {
+                // Handle exceptions (e.g., logging)
+                Console.WriteLine($"An error occurred: {ex.Message}");
+            }
+        }
+    }
+
+    private class ChatMessage
+    {
+        public string Username { get; set; } = "";
+        public string Content { get; set; } = "";
+        public bool IsSentByUser { get; set; }
+    }
+}
+
+
