@@ -1,5 +1,6 @@
 ﻿@page "/counter"
 @rendermode InteractiveServer
+@inject ILogger<Counter> logger
 
 <PageTitle>Counter</PageTitle>
 
@@ -15,5 +16,6 @@
     private void IncrementCount()
     {
         currentCount++;
+        logger.LogWarning("currentCount = {0}",currentCount);
     }
 }
