@@ -15,6 +15,23 @@ a, .btn-link {
     color: #fff;
     background-color: #1b6ec2;
     border-color: #1861ac;
+
+}
+
+.btn-sendmessage {
+    color: #fff;
+    background-color: #1b6ec2;
+    border-color: #1861ac;
+
+    /* サイズ関連のプロパティ */
+    font-size: 16px;     /* 文字サイズ */
+    padding: 5px 20px;  /* 内側の余白 (上下 左右) */
+    border-radius: 5px;  /* ボーダーの角の丸み */
+    height: 50px;        /* 高さ */
+    /* 隣り合う要素との距離 */
+    margin-left: auto; /* 左側の余白を設定 */
+    width: 8%;
+
 }
 
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
@@ -68,15 +85,17 @@ h1:focus {
 }
 
 .received {
-    background: #4CAF50;
-    color: #fff;
+    background: #fff;
+    border: 2px solid #4CAF50;
+    color: #333;
     margin-left: 10px;
     margin-right: auto;
 }
 
 .sent {
-    background: #03a9f4;
-    color: #fff;
+    background: #fff;
+    border: 2px solid #03a9f4;
+    color: #333;
     margin-left: auto;
     margin-right: 10px;
     text-align: right;
@@ -103,21 +122,23 @@ h1:focus {
 
 /* ユーザー名のスタイル */
 .username {
-    font-size: 0.8em;
+    font-size: 1.0em;
     font-weight: bold;
     color: #000;
 }
 
 .msg {
-    margin-top: 5px;
+    margin-top: 10px;
 }
 
-/* チャットコンテナの設定 */
+
 .chat-container {
+    height: 70vh;
     display: flex;
     flex-direction: column;
-    height: 80%; /* 画面の高さに合わせる */
-    position: relative; /* テキストエリアの固定用 */
+    padding: 10px;
+    box-sizing: border-box;
+    background-color: #f4f4f9;
 }
 
 /* メッセージリストのスタイル */
@@ -131,15 +152,16 @@ h1:focus {
 textarea {
     border: 1px dashed #888;
     border-radius: 5px;
-    width: 80%;
+    width: 90%;
     overflow: auto;
     background: #f7f7f7;
     padding: 10px;
     box-sizing: border-box;
     position: absolute;
-    bottom: 0; /* 画面の下部に固定 */
+    bottom: 40px; /* 画面の下部に固定 */
     left: 0;
     right: 0;
+
 }
 
 .button-send-message {
@@ -147,7 +169,7 @@ textarea {
 }
 
 .area-send-message {
-    /* background-color: #ffffff; */
+    background-color: #ffffff; 
     border: none;
     color: white;
     padding: 10px 20px;
@@ -155,7 +177,7 @@ textarea {
     text-decoration: none;
     position: fixed; /* 固定する */
     bottom: 10px;      /* ビューポートの下部に配置 */
-    width: 80%;    /* ページの全幅に広げる */
-    /* box-shadow: 0 -2px 5px rgba(0,0,0,0.1); 上部に影を追加して目立たせる */
+    height: 10%; /* 画面の高さに合わせる */
+    width: 85%;    /* ページの全幅に広げる */
     z-index: 1000;  /* 他の要素より前面に表示する */
 }
