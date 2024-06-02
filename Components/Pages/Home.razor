@@ -2,6 +2,7 @@
 @using Microsoft.Extensions.Configuration;
 @using Azure.AI.OpenAI;
 @inject IConfiguration Configuration
+@inject ILogger<Home> logger
 @using System.Threading.Tasks
 @rendermode InteractiveServer
 
@@ -53,6 +54,7 @@
             var userMessage = inputtext;
             inputtext = string.Empty;
             await InvokeAsync(StateHasChanged);
+            logger.LogWarning("TimeStanp:{0}", DateTime.Now);
 
             try
             {
