@@ -4,34 +4,67 @@
 @inject IConfiguration Configuration
 @inject ILogger<Home> logger
 @using System.Threading.Tasks
+@using System.Text.Json;
 @rendermode InteractiveServer
 
 <PageTitle>Home</PageTitle>
 
 
-@* // display messages *@
-<div class="chat-container">
-    <div id="scrollbox">
-        @foreach (var msg in messages)
-        {
-            <div class="message @(msg.IsSentByUser ? "sent" : "received")">
-                <div class="username">@msg.Username</div>
-                <div class="msg">@msg.Content</div>
-            </div>
-        }
+@if (!_isChatting)
+{
+    <p>
+        Enter your name to start chatting:
+    </p>
+
+    <input type="text" maxlength="32" @bind="@_username" />
+    <button class="btn-info" type="button" @onclick="@Chat"><span class="oi oi-chat" aria-hidden="true"></span> Register</button>
+
+    // Error messages
+    @if (_message != null)
+    {
+        <div class="invalid-feedback">@_message</div>
+        <small id="emailHelp" class="form-text text-muted">@_message</small>
+    }
+}
+else
+{
+    @* // banner to show current user *@
+    <div class="alert alert-secondary mt-4" role="alert">
+        <span class="oi oi-person mr-2" aria-hidden="true"></span>
+        <span>You are connected as <b>@_username</b></span>
     </div>
-    
+
+
+    @* // display messages *@
+    <div class="chat-container">
+        <div id="scrollbox">
+            @foreach (var msg in messages)
+            {
+                <div class="message @(msg.IsSentByUser ? "sent" : "received")">
+                    <div class="username">@msg.Username</div>
+                    <div class="msg">@msg.Content</div>
+                </div>
+            }
+        </div>
+    </div>
     <div class="area-send-message">
         <textarea class="input-lg" @bind="inputtext" placeholder="Type your message here..."></textarea>
         <div class="button-send-message">
-            <button class="btn-default" @onclick="SendMessage">送信</button>
+            <button class="btn-sendmessage" @onclick="SendMessage">Send</button>
         </div>
     </div>
-    
-</div>
+
+    <p class="bottom"></P>
+}
 
 @code
 {
+    // flag to indicate chat status
+    private bool _isChatting = false;
+    // name of the user who will be chatting
+    private string? _username;
+        // on-screen message
+    private string? _message;
     private string? nonAzureOpenAIApiKey;
     private string inputtext { get; set; } = "";
     private List<ChatMessage> messages = new List<ChatMessage>();
@@ -39,9 +72,7 @@
     protected override void OnInitialized()
     {
         nonAzureOpenAIApiKey = Configuration["OAI_KEY"];
-        
-        messages.Add(new ChatMessage { Username = "BlazorGenAI", Content = "Hello world", IsSentByUser = false });
-                    
+                            
     }
 
     private async Task SendMessage()
@@ -49,12 +80,16 @@
         if (!string.IsNullOrWhiteSpace(inputtext))
         {
             // Add user message to chat
-            messages.Add(new ChatMessage { Username = "You", Content = inputtext, IsSentByUser = true });
+            messages.Add(new ChatMessage { Username = _username!, Content = inputtext, IsSentByUser = true });
             // Clear the input text after adding the message
             var userMessage = inputtext;
             inputtext = string.Empty;
             await InvokeAsync(StateHasChanged);
-            logger.LogWarning("TimeStanp:{0}", DateTime.Now);
+            @* logger.LogWarning("TimeStanp:{0}", DateTime.Now); *@
+            
+            DateTime dt = DateTime.Now;
+            File.WriteAllText($"./log/messages_{_username}_"+dt.ToString("yyyyMMdd")+".json", JsonSerializer.Serialize(messages));
+            
 
             try
             {
@@ -75,6 +110,10 @@
 
                 messages.Add(new ChatMessage { Username = "BlazorGenAI", Content = responseMessage.Content, IsSentByUser = false });
                 await InvokeAsync(StateHasChanged);
+
+                // メッセージをJSONファイルに保存する
+                string json = JsonSerializer.Serialize(messages);
+                File.WriteAllText("./messages.json", json);
                 
             }
             catch (Exception ex)
@@ -82,6 +121,31 @@
                 // Handle exceptions (e.g., logging)
                 Console.WriteLine($"An error occurred: {ex.Message}");
             }
+        }
+    }
+    public async Task Chat()
+    {
+        // check username is valid
+        if (string.IsNullOrWhiteSpace(_username))
+        {
+            _message = "Please enter a name";
+            return;
+        }
+        else
+        {
+            messages.Add(new ChatMessage { Username = "BlazorGenAI", Content = $"Hello, {_username}", IsSentByUser = false });
+        }
+
+        try
+        {
+            // Start chatting and force refresh UI.
+            _isChatting = true;
+            await Task.Delay(1);
+        }
+        catch (Exception e)
+        {
+            _message = $"ERROR: Failed to start chat client: {e.Message}";
+            _isChatting = false;
         }
     }
 
