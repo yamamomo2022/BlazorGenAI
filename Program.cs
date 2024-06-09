@@ -1,4 +1,5 @@
 using BlazorGenAI.Components;
+using Microsoft.AspNetCore.ResponseCompression;
 
 namespace BlazorGenAI;
 
@@ -10,7 +11,14 @@ public class Program
 
         // Add services to the container.
         builder.Services.AddRazorComponents()
-            .AddInteractiveServerComponents();
+            .AddInteractiveServerComponents(options =>
+        {
+            options.DetailedErrors = false;
+            options.DisconnectedCircuitMaxRetained = 100;
+            options.DisconnectedCircuitRetentionPeriod = TimeSpan.FromMinutes(3);
+            options.JSInteropDefaultCallTimeout = TimeSpan.FromMinutes(1);
+            options.MaxBufferedUnacknowledgedRenderBatches = 10;
+        });
 
         var app = builder.Build();
 
