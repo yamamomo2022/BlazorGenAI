@@ -50,22 +50,18 @@ namespace BlazorGenAI
         const string OpenAIKey = "your-openai-key-here";
         const string OpenAIModel = "text-embedding-ada-002";
 
-        public static async Task Main(string[] args)
+        public static async Task calcCosineSimilarity()
         {
             List<EmbeddingData> embeddingDataList = new List<EmbeddingData>();
             EmbeddingData lastItem = new EmbeddingData();
             double highestCosineSimilarity = 0;
 
-            // Uri oaiEndpoint = new ("https://YOUR_RESOURCE_NAME.openai.azure.com");
-            // AzureKeyCredential credentials = new (oaiKey);
-            // OpenAIClient openAIClient = new (oaiEndpoint, credentials);
-            
             var openAIClient = new OpenAIClient(OpenAIKey, new OpenAIClientOptions());
 
-            EmbeddingsOptions embeddingOptions = new()
+            EmbeddingsOptions embeddingOptions = new EmbeddingsOptions
             {
                 DeploymentName = "text-embedding-ada-002",
-                Input = { "熱輻射" },
+                Input = { "熱輻射" }
             };
 
             var response = await openAIClient.GetEmbeddingsAsync(embeddingOptions);
